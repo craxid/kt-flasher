@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- KTMicro mode aplikasi (31b2), bootloader (8888:cdc0), JA11 hasil flash (2972:0102) -->
-    <usb-device vendor-id="12722" />
-    <usb-device vendor-id="34952" product-id="52672" />
-    <usb-device vendor-id="10610" product-id="258" />
-</resources>
