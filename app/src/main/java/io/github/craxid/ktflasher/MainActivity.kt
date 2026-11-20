@@ -626,7 +626,7 @@ class MainActivity : Activity() {
         """.trimIndent()
 
     private val teksTentang: String = """
-            KT Flasher 1.3.0
+            KT Flasher 1.3.1
             by CraXID Project - https://hxa.my.id
 
             Alat flash firmware untuk dongle DAC USB KTMicro KT02H20
