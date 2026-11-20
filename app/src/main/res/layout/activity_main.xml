@@ -139,13 +139,16 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:background="#000000"
+        android:padding="10dp">
 
         <TextView
             android:id="@+id/logTeks"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="monospace"
+            android:textColor="#33FF33"
             android:textSize="12sp" />
     </ScrollView>
 
