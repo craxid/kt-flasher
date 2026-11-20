@@ -3,7 +3,7 @@ package io.github.craxid.ktflasher
 // Porting setia dari bagian image/paket ktflash.py (txtsamu, MIT).
 // Semua fungsi di sini murni, belum menyentuh USB sama sekali.
 
-class KtError(msg: String) : RuntimeException(msg)
+open class KtError(msg: String) : RuntimeException(msg)
 
 object KtCrc {
     private val tabel = IntArray(256) { i ->

@@ -57,6 +57,11 @@ class MainActivity : Activity() {
     @Volatile
     private var attachLatch: CountDownLatch? = null
 
+    // dialog pemulihan cabut-colok, ditutup paksa dari thread pekerja
+    // begitu dongle-nya kecolok lagi
+    @Volatile
+    private var dialogPulih: AlertDialog? = null
+
     private val penerima = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context, intent: Intent) {
             when (intent.action) {
@@ -344,11 +349,72 @@ class MainActivity : Activity() {
         return hasil.get()
     }
 
-    private fun sesiFlash(img: KtImage) {
-        var tautan: KtTautan? = null
-        var sudahHapus = false
-        try {
-            setStatus("menyiapkan sesi flash")
+    // Dialog pemulihan pas handshake gagal: KTM cuma berlaku sekali per
+    // boot, jadi satu-satunya obat ya boot ulang dongle-nya lewat
+    // cabut-colok. Fungsi ini nungguin cabutnya lalu coloknya lagi
+    // (dari daftar perangkat, bukan nebak), dialognya nutup sendiri
+    // begitu dongle nongol lagi. Balik true kalau dongle balik.
+    private fun mintaPulihCabutColok(): Boolean {
+        val batal = AtomicBoolean(false)
+        runOnUiThread {
+            dialogPulih = AlertDialog.Builder(this)
+                .setTitle("Handshake gagal")
+                .setMessage(
+                    "Bootloader tidak menjawab handshake. Handshake bootloader cuma " +
+                        "berlaku sekali per boot, dan boot kali ini tampaknya sudah " +
+                        "terpakai.\n\n" +
+                        "Cabut dongle-nya sekarang, tunggu sebentar, lalu colok lagi. " +
+                        "Aplikasi melanjutkan otomatis begitu dongle terdeteksi."
+                )
+                .setNegativeButton("Batal") { _, _ -> batal.set(true) }
+                .setOnCancelListener { batal.set(true) }
+                .show()
+        }
+        fun dongleAda(): Boolean = cariPerangkat {
+            (it.vendorId == VID_BOOT && it.productId == PID_BOOT) || it.vendorId == VID_KT
+        } != null
+        val akhir = System.currentTimeMillis() + 180_000
+        // fase 1: tunggu dongle-nya beneran dicabut dulu
+        var hilang = false
+        while (System.currentTimeMillis() < akhir) {
+            if (batal.get()) break
+            if (!dongleAda()) {
+                hilang = true
+                break
+            }
+            Thread.sleep(400)
+        }
+        // fase 2: baru tunggu colokan berikutnya
+        var muncul = false
+        if (hilang) {
+            while (System.currentTimeMillis() < akhir) {
+                if (batal.get()) break
+                if (dongleAda()) {
+                    muncul = true
+                    break
+                }
+                Thread.sleep(400)
+            }
+        }
+        runOnUiThread {
+            try {
+                dialogPulih?.dismiss()
+            } catch (e: Exception) {
+                // dialognya mungkin sudah ketutup duluan, abaikan
+            }
+            dialogPulih = null
+        }
+        return muncul && !batal.get()
+    }
+
+    // Nyambung ke bootloader sampai handshake lolos: cari perangkat,
+    // unlock kalau perlu, buka tautan CDC, handshake. Kalau handshake
+    // gagal krn KTM boot itu sudah terpakai (kasus dongle nyangkut di
+    // mode bootloader dari percobaan sebelumnya), nawarin pemulihan
+    // cabut-colok lalu ngulang dari awal, maks 3 putaran.
+    private fun sambungBootloader(): Pair<KtBootloader, KtTautan> {
+        var putaran = 0
+        while (true) {
             // 1) bootloader sudah ada? kalau belum, unlock dongle KT dulu
             var boot = cariPerangkat { it.vendorId == VID_BOOT && it.productId == PID_BOOT }
             if (boot == null) {
@@ -359,16 +425,16 @@ class MainActivity : Activity() {
                     )
                 log("Dongle KT ketemu (%04x:%04x), meminta izin USB...".format(kt.vendorId, kt.productId))
                 if (!mintaIzin(kt)) throw KtError("Izin USB untuk dongle ditolak")
-                val conn = usbManager.openDevice(kt)
+                val connKt = usbManager.openDevice(kt)
                     ?: throw KtError("Gagal membuka dongle")
                 try {
-                    val ifc = kirimUnlock(conn, kt) {
+                    val ifc = kirimUnlock(connKt, kt) {
                         usbManager.deviceList.containsKey(kt.deviceName)
                     }
                     log("Report pembuka bootloader terkirim (interface HID $ifc).")
                 } finally {
                     try {
-                        conn.close()
+                        connKt.close()
                     } catch (e: Exception) {
                         // abaikan
                     }
@@ -385,12 +451,43 @@ class MainActivity : Activity() {
             val conn = usbManager.openDevice(boot)
                 ?: throw KtError("Gagal membuka perangkat bootloader")
             val link = bukaTautanCdc(conn, boot)
-            tautan = link
             val bl = KtBootloader(link) { log(it) }
 
-            // 3) handshake + cek chip, semua SEBELUM ada yang dihapus
-            bl.handshake()
+            // 3) handshake; gagal di sini belum ada yang dihapus, aman diulang
+            try {
+                bl.handshake()
+            } catch (e: KtHandshakeError) {
+                try {
+                    link.tutup()
+                } catch (e2: Exception) {
+                    // abaikan
+                }
+                putaran++
+                if (putaran > 3) throw e
+                log("Handshake gagal, masuk pemulihan cabut-colok (putaran $putaran)...")
+                if (!mintaPulihCabutColok()) {
+                    throw KtError(
+                        "Pemulihan dibatalkan. Cabut-colok dongle-nya, lalu tekan Flash lagi."
+                    )
+                }
+                log("Dongle terdeteksi lagi, mengulang sambungan dari awal...")
+                continue
+            }
             log("Handshake bootloader OK.")
+            return bl to link
+        }
+    }
+
+    private fun sesiFlash(img: KtImage) {
+        var tautan: KtTautan? = null
+        var sudahHapus = false
+        try {
+            setStatus("menyiapkan sesi flash")
+            // 1-3) sambung ke bootloader + handshake, dgn pemulihan cabut-colok
+            val (bl, link) = sambungBootloader()
+            tautan = link
+
+            // 4) cek chip, masih sebelum ada yang dihapus
             val chip = bl.bacaChipId()
             val chipTeks = String(chip, Charsets.US_ASCII).trimEnd('\u0000')
             log("Chip id perangkat: $chipTeks - chip id image: ${img.chipTeks()}")
@@ -398,17 +495,18 @@ class MainActivity : Activity() {
                 throw KtError("Chip TIDAK cocok dengan image - dibatalkan sebelum ada yang dihapus")
             }
 
-            // 4) konfirmasi terakhir, pasangan --yes + --no-backup-ok di CLI
+            // 5) konfirmasi terakhir, pasangan --yes + --no-backup-ok di CLI
             if (!konfirmasiTulis(chipTeks)) {
                 log(
-                    "Dibatalkan sebelum hapus. Dongle masih di mode bootloader; " +
-                        "cabut-colok untuk balik ke mode normal."
+                    "Dibatalkan sebelum hapus. Dongle masih di mode bootloader, dan " +
+                        "handshake boot ini sudah terpakai. Kalau mau flash lagi, " +
+                        "cabut-colok dongle-nya dulu, baru tekan Flash."
                 )
                 setStatus("dibatalkan")
                 return
             }
 
-            // 5) tulis beneran
+            // 6) tulis beneran
             sudahHapus = true
             setStatus("menulis firmware")
             val rencana = rencanaPaket(img)
@@ -511,7 +609,7 @@ class MainActivity : Activity() {
         """.trimIndent()
 
     private val teksTentang: String = """
-            KT Flasher 1.1.0
+            KT Flasher 1.2.1
             by CraXID Project - https://hxa.my.id
 
             Alat flash firmware untuk dongle DAC USB KTMicro KT02H20

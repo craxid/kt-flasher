@@ -5,6 +5,10 @@ import java.io.ByteArrayOutputStream
 // Sesi bootloader KT02H20, porting dari kelas Bootloader di ktflash.py.
 // Polanya sama persis: kuras buffer, kirim perintah, tunggu byte ack.
 
+// error khusus handshake, biar sesi flash bisa nawarin pemulihan
+// cabut-colok tanpa nebak-nebak dari isi pesan
+class KtHandshakeError(msg: String) : KtError(msg)
+
 interface KtTautan {
     fun kirim(data: ByteArray)
     fun bacaSebagian(): ByteArray
@@ -74,7 +78,7 @@ class KtBootloader(
             }
             if (buf.toByteArray().any { it.toInt() and 0xFF == ACK_CMD }) return
         }
-        throw KtError(
+        throw KtHandshakeError(
             "Tidak ada ack handshake (0x78). Bootloader hanya menerima KTM sekali per boot: " +
                 "cabut dan colok lagi dongle-nya, lalu ulangi."
         )
