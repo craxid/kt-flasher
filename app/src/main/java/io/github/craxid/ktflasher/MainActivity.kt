@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Color
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.net.Uri
@@ -32,6 +33,10 @@ class MainActivity : Activity() {
     companion object {
         private const val ACTION_IZIN = "io.github.craxid.ktflasher.IZIN_USB"
         private const val REQ_PILIH = 42
+
+        // warna log gaya terminal: hijau pas normal, merah pas gagal
+        private val WARNA_LOG_NORMAL = Color.parseColor("#33FF33")
+        private val WARNA_LOG_GAGAL = Color.parseColor("#FF5252")
     }
 
     private lateinit var usbManager: UsbManager
@@ -145,6 +150,7 @@ class MainActivity : Activity() {
         bersihBtn.setOnClickListener {
             // kosongkan log, sisakan baris siap kayak pas aplikasi baru dibuka
             logTeks.text = ""
+            logTeks.setTextColor(WARNA_LOG_NORMAL)
             log("Log dibersihkan. KT Flasher siap.")
         }
 
@@ -179,7 +185,11 @@ class MainActivity : Activity() {
     }
 
     private fun setStatus(s: String) {
-        runOnUiThread { statusTeks.text = "Status: $s" }
+        runOnUiThread {
+            statusTeks.text = "Status: $s"
+            // teks log ngikutin status: gagal bikin merah, sisanya hijau
+            logTeks.setTextColor(if (s == "gagal") WARNA_LOG_GAGAL else WARNA_LOG_NORMAL)
+        }
     }
 
     private fun setSibuk(b: Boolean) {
@@ -371,7 +381,8 @@ class MainActivity : Activity() {
                 .show()
         }
         fun dongleAda(): Boolean = cariPerangkat {
-            (it.vendorId == VID_BOOT && it.productId == PID_BOOT) || it.vendorId == VID_KT
+            (it.vendorId == VID_BOOT && it.productId == PID_BOOT) || it.vendorId == VID_KT ||
+                (it.vendorId == VID_JA11 && it.productId == PID_JA11)
         } != null
         val akhir = System.currentTimeMillis() + 180_000
         // fase 1: tunggu dongle-nya beneran dicabut dulu
@@ -418,10 +429,16 @@ class MainActivity : Activity() {
             // 1) bootloader sudah ada? kalau belum, unlock dongle KT dulu
             var boot = cariPerangkat { it.vendorId == VID_BOOT && it.productId == PID_BOOT }
             if (boot == null) {
-                val kt = cariPerangkat { it.vendorId == VID_KT }
+                // mode aplikasi bisa 31b2 (firmware bawaan KT) atau 2972:0102
+                // (sudah pakai firmware JA11); dua-duanya nerima unlock yg sama,
+                // sama kayak ktflash.py yg nerima --vid 0x2972
+                val kt = cariPerangkat {
+                    it.vendorId == VID_KT ||
+                        (it.vendorId == VID_JA11 && it.productId == PID_JA11)
+                }
                     ?: throw KtError(
-                        "Dongle tidak ditemukan (VID 0x31b2 atau bootloader 8888:cdc0). " +
-                            "Cek colokan OTG-nya."
+                        "Dongle tidak ditemukan (VID 0x31b2, JA11 0x2972, atau " +
+                            "bootloader 8888:cdc0). Cek colokan OTG-nya."
                     )
                 log("Dongle KT ketemu (%04x:%04x), meminta izin USB...".format(kt.vendorId, kt.productId))
                 if (!mintaIzin(kt)) throw KtError("Izin USB untuk dongle ditolak")
@@ -609,7 +626,7 @@ class MainActivity : Activity() {
         """.trimIndent()
 
     private val teksTentang: String = """
-            KT Flasher 1.2.1
+            KT Flasher 1.3.0
             by CraXID Project - https://hxa.my.id
 
             Alat flash firmware untuk dongle DAC USB KTMicro KT02H20
