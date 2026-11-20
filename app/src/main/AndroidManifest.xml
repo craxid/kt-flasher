@@ -17,12 +17,11 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
-            </intent-filter>
-            <meta-data
-                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-                android:resource="@xml/device_filter" />
+            <!-- SENGAJA tidak ada filter USB_DEVICE_ATTACHED: filter itu bikin
+                 sistem melempar prompt penangan USB yg membuka aplikasi sbg
+                 instans baru di tengah sesi flash (prompt ketiga), dan sesi
+                 tertahan sampai user menekan Kembali. Deteksi colok-cabut
+                 selama aplikasi jalan cukup dari receiver dinamis. -->
         </activity>
     </application>
 
