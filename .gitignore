@@ -1,0 +1,21 @@
+# Gradle dan hasil build
+.gradle/
+build/
+app/build/
+*.apk
+*.aab
+*.log
+
+# Konfigurasi lokal dan signing, jangan pernah ikut terunggah
+local.properties
+keystore-final.properties
+*.keystore
+*.jks
+
+# IDE dan OS
+.idea/
+*.iml
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
