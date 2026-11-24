@@ -6,11 +6,11 @@ by CraXID Project
 
 ## Tentang
 
-Dongle generik KT02H20 memakai chip yang sama dengan FiiO JA11, jadi firmware JA11 bisa ditulis ke dongle generik itu dan dongle berubah menjadi JA11 secara fungsi: dikenali aplikasi FiiO Control, dapat EQ bawaan, dan terbaca sebagai JadeAudio JA11 di perangkat lain. KT Flasher melakukan proses flash itu dari Android lewat USB Host API.
+Dongle generik KT02H20 memakai chip yang sama dengan FiiO JA11, jadi firmware JA11 bisa ditulis ke dongle generik itu dan dongle berubah menjadi JA11 secara fungsi: dikenali aplikasi FiiO Control, dapat EQ bawaan, dan terbaca sebagai JadeAudio JA11 di perangkat lain. KT Flasher melakukan proses flash itu dari Android lewat USB Host API. Firmware Tinhifi untuk chip yang sama juga bisa ditulis ke dongle ini dan sudah terkonfirmasi berhasil.
 
 ## Fitur
 
-- **Probe**: membaca identitas dongle yang tercolok, baik mode aplikasi KT (31b2:0111), mode bootloader (8888:cdc0), maupun JA11 hasil flash (2972:0102)
+- **Deteksi Dongle**: membaca identitas dongle yang tercolok, baik mode aplikasi KT (31b2:0111), mode bootloader (8888:cdc0), maupun JA11 hasil flash (2972:0102)
 - **Validasi firmware**: berkas .bin diperiksa dulu sebelum apa pun ditulis (magic, chip id, ukuran paket, dan CRC image)
 - **Dry run**: menampilkan rencana paket yang akan ditulis tanpa menyentuh dongle
 - **Flash aman**: chip perangkat wajib cocok dengan image, ada konfirmasi eksplisit sebelum hapus dan tulis, dan header image ditulis paling akhir
@@ -22,6 +22,7 @@ Dongle generik KT02H20 memakai chip yang sama dengan FiiO JA11, jadi firmware JA
 - Dongle USB DAC generik KT02H20 (chip KT02H20B)
 - JCALLY JM12, hardwarenya sama
 - FiiO JA11 asli, untuk probe dan baca status
+- Firmware Tinhifi untuk KT02H20, sudah terkonfirmasi bisa ditulis ke dongle di atas
 
 ## Syarat
 
@@ -36,8 +37,8 @@ Dongle generik KT02H20 memakai chip yang sama dengan FiiO JA11, jadi firmware JA
 
 ## Cara pakai
 
-1. Colok dongle, buka KT Flasher, tekan **Probe** dan pastikan dongle terbaca.
-2. Tekan **Pilih Berkas**, pilih firmware .bin (mis. JA11 V2.2), lalu periksa hasil validasinya.
+1. Colok dongle, buka KT Flasher, tekan **Deteksi Dongle** dan pastikan dongle terbaca.
+2. Tekan **Pilih Firmware**, pilih firmware .bin, misalnya JA11 V2.2 atau firmware Tinhifi, lalu periksa hasil validasinya.
 3. Bila mau, jalankan **Dry run** untuk melihat rencana paketnya.
 4. Tekan **Flash**. Izin USB muncul dua kali (mode aplikasi lalu mode bootloader), itu normal. Setujui keduanya, lalu konfirmasi hapus dan tulis.
 5. Sesudah selesai, cabut dan colok ulang dongle. Dongle sekarang terbaca sebagai JadeAudio JA11.
