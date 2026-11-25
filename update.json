@@ -1,7 +1,7 @@
 {
-  "catatan_en": "Added English language, follows your system language automatically.\nMinor bug fixes.",
-  "catatan_id": "Penambahan Bahasa Inggris, otomatis mengikuti bahasa sistem.\nPerbaikan bug kecil.",
-  "url": "https://github.com/craxid/kt-flasher/releases/download/v1.4.0/KT-Flasher-v1.4.0.apk",
-  "versionCode": 14,
-  "versionName": "1.4.0"
+  "catatan_en": "Pick firmware straight from a zip file, no need to extract it first.\nRename your DAC with a custom name after picking a firmware.\nMinor bug fixes.",
+  "catatan_id": "Pilih firmware langsung dari berkas zip, tidak perlu ekstrak dulu.\nGanti nama DAC dengan nama kustom sesudah memilih firmware.\nPerbaikan bug kecil.",
+  "url": "https://github.com/craxid/kt-flasher/releases/download/v1.6.0/KT-Flasher-v1.6.0.apk",
+  "versionCode": 17,
+  "versionName": "1.6.0"
 }
