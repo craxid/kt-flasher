@@ -2,6 +2,6 @@
   "catatan_en": "Pick firmware straight from a zip file, no need to extract it first.\nRename your DAC with a custom name after picking a firmware.\nMinor bug fixes.",
   "catatan_id": "Pilih firmware langsung dari berkas zip, tidak perlu ekstrak dulu.\nGanti nama DAC dengan nama kustom sesudah memilih firmware.\nPerbaikan bug kecil.",
   "url": "https://github.com/craxid/kt-flasher/releases/download/v1.6.0/KT-Flasher-v1.6.0.apk",
-  "versionCode": 17,
+  "versionCode": 18,
   "versionName": "1.6.0"
 }
