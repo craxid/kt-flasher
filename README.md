@@ -1,4 +1,18 @@
-# KT Flasher
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=160&section=header&text=KT%20Flasher&fontSize=40&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=Flash%20firmware%20JA11%20ke%20dongle%20DAC%20KT02H20&descAlignY=58&descSize=14" alt="KT Flasher" />
+</p>
+
+<h1 align="center">KT Flasher</h1>
+
+<p align="center">
+  <a href="https://github.com/craxid/kt-flasher/releases/latest"><img src="https://img.shields.io/github/v/release/craxid/kt-flasher" alt="Rilis terbaru" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/craxid/kt-flasher" alt="Lisensi" /></a>
+  <a href="https://github.com/craxid/kt-flasher/stargazers"><img src="https://img.shields.io/github/stars/craxid/kt-flasher" alt="Bintang" /></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/craxid/kt-flasher/releases/latest"><b>⬇️ Unduh APK Terbaru</b></a>
+</p>
 
 Aplikasi Android untuk flash firmware FiiO JA11 ke dongle USB DAC berbasis chip KTMicro KT02H20, langsung dari HP. Tanpa PC, tanpa root.
 
